@@ -21,23 +21,39 @@ public class SimpleJDBCRepository {
     private Statement st = null;
     private final CustomDataSource dataSource = CustomDataSource.getInstance();
 
-    private static final String createUserSQL = "INSERT INTO myusers (firstname, lastname, age) values (?,?,?)";
-    private static final String updateUserSQL = "UPDATE myusers set firstname = ?, lastname = ?, age = ? where id = ?";
-    private static final String deleteUser = "DELETE FROM myusers where id = ?";
-    private static final String findUserByIdSQL = "SELECT * FROM myusers where id = ?";
-    private static final String findUserByNameSQL = "SELECT * FROM myusers where firstname LIKE concat('%', ?, '%')";
-    private static final String findAllUserSQL = "SELECT * FROM myusers";
-
+    private static final String createUserSQL = """
+            INSERT INTO myusers(
+            firstname, lastname, age)
+            VALUES (?, ?, ?);
+            """;
+    private static final String updateUserSQL = """
+            UPDATE myusers
+            SET firstname=?, lastname=?, age=?
+            WHERE id = ?
+            """;
+    private static final String deleteUser = """
+            DELETE FROM public.myusers
+            WHERE id = ?
+            """;
+    private static final String findUserByIdSQL = """
+            SELECT id, firstname, lastname, age FROM myusers
+            WHERE id = ?
+            """;
+    private static final String findUserByNameSQL = """
+            SELECT id, firstname, lastname, age FROM myusers
+            WHERE firstname LIKE CONCAT('%', ?, '%')
+            """;
+    private static final String findAllUserSQL = """
+            SELECT id, firstname, lastname, age FROM myusers
+            """;
 
     private User map(ResultSet rs) throws SQLException {
-
         return User.builder()
                 .id(rs.getLong("id"))
                 .firstName(rs.getString("firstname"))
                 .lastName(rs.getString("lastname"))
                 .age(rs.getInt("age"))
                 .build();
-
     }
 
     public Long createUser(User user) {
@@ -64,9 +80,9 @@ public class SimpleJDBCRepository {
              PreparedStatement preparedStatement = connection.prepareStatement(findUserByIdSQL)) {
             preparedStatement.setObject(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
-           if(resultSet.next()){
-               user = map(resultSet);
-           }
+            if (resultSet.next()) {
+                user = map(resultSet);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
