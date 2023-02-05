@@ -28,8 +28,8 @@ public class SimpleJDBCRepository {
     private static final String findUserByNameSQL = "SELECT * FROM myusers where firstname LIKE concat('%', ?, '%')";
     private static final String findAllUserSQL = "SELECT * FROM myusers";
 
-    public Long createUser(User user){
-        User createdUser;
+    public Long createUser(User user) {
+        Long id = null;
         try {
             Connection connection = CustomDataSource.getInstance().getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(createUserSQL);
@@ -38,11 +38,13 @@ public class SimpleJDBCRepository {
             preparedStatement.setObject(3, user.getAge());
             preparedStatement.executeQuery();
             ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-            createdUser = findUserByName(user.getFirstName());
+            if (generatedKeys.next()) {
+                id = generatedKeys.getLong(1);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return createdUser.getId();
+        return id;
     }
 
     public User findUserById(Long userId) {
@@ -71,7 +73,7 @@ public class SimpleJDBCRepository {
             PreparedStatement preparedStatement = connection.prepareStatement(findUserByNameSQL);
             preparedStatement.setObject(1, userName);
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 user = new User();
                 user.setId(resultSet.getLong("id"));
                 user.setFirstName(resultSet.getString("firstname"));
@@ -112,11 +114,13 @@ public class SimpleJDBCRepository {
             preparedStatement.setObject(2, user.getLastName());
             preparedStatement.setObject(3, user.getAge());
             preparedStatement.setObject(4, user.getId());
-            preparedStatement.executeQuery();
+            if (preparedStatement.executeUpdate() != 0) {
+                return findUserById(user.getId());
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return findUserById(user.getId());
+        return null;
     }
 
     private void deleteUser(Long userId) {
@@ -124,7 +128,7 @@ public class SimpleJDBCRepository {
             Connection connection = CustomDataSource.getInstance().getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(deleteUser);
             preparedStatement.setObject(1, userId);
-            preparedStatement.executeQuery();
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
