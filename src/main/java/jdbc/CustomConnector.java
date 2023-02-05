@@ -10,9 +10,8 @@ public class CustomConnector {
     public Connection getConnection(String url) {
         Connection connection;
         try {
-            Class.forName("jdbc:postgresql://localhost:5432/postgres");
             connection = DriverManager.getConnection(url);
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return connection;
@@ -21,9 +20,8 @@ public class CustomConnector {
     public Connection getConnection(String url, String user, String password) {
         Connection connection;
         try {
-            Class.forName("jdbc:postgresql://localhost:5432/postgres");
             connection = DriverManager.getConnection(url, user, password);
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return connection;

@@ -22,6 +22,7 @@ public class CustomDataSource implements DataSource {
     private final String name;
     private final String password;
     private static final Object MONITOR = new Object();
+    private static final SQLException SQL_EXCEPTION = new SQLException();
 
     private CustomDataSource(String driver, String url, String password, String name) {
         this.driver = driver;
@@ -61,41 +62,41 @@ public class CustomDataSource implements DataSource {
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        return new CustomConnector().getConnection(url, name, password);
+        return new CustomConnector().getConnection(url, username, password);
     }
 
     @Override
     public PrintWriter getLogWriter() throws SQLException {
-        return null;
+        throw SQL_EXCEPTION;
     }
 
     @Override
     public void setLogWriter(PrintWriter out) throws SQLException {
-
+        throw SQL_EXCEPTION;
     }
 
     @Override
     public void setLoginTimeout(int seconds) throws SQLException {
-
+        throw SQL_EXCEPTION;
     }
 
     @Override
     public int getLoginTimeout() throws SQLException {
-        return 0;
+        throw SQL_EXCEPTION;
     }
 
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        return null;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        return null;
+        throw SQL_EXCEPTION;
     }
 
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        return false;
+        throw SQL_EXCEPTION;
     }
 }
