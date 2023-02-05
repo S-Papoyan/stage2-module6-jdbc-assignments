@@ -28,6 +28,18 @@ public class SimpleJDBCRepository {
     private static final String findUserByNameSQL = "SELECT * FROM myusers where firstname LIKE concat('%', ?, '%')";
     private static final String findAllUserSQL = "SELECT * FROM myusers";
 
+
+    private User map(ResultSet rs) throws SQLException {
+
+        return User.builder()
+                .id(rs.getLong("id"))
+                .firstName(rs.getString("firstname"))
+                .lastName(rs.getString("lastname"))
+                .age(rs.getInt("age"))
+                .build();
+
+    }
+
     public Long createUser(User user) {
         Long id = null;
         try (Connection connection = dataSource.getConnection();
@@ -52,12 +64,9 @@ public class SimpleJDBCRepository {
              PreparedStatement preparedStatement = connection.prepareStatement(findUserByIdSQL)) {
             preparedStatement.setObject(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                user.setId(resultSet.getLong("id"));
-                user.setFirstName(resultSet.getString("firstname"));
-                user.setLastName((resultSet.getString("lastname")));
-                user.setAge(resultSet.getInt("age"));
-            }
+           if(resultSet.next()){
+               user = map(resultSet);
+           }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -70,12 +79,8 @@ public class SimpleJDBCRepository {
              PreparedStatement preparedStatement = connection.prepareStatement(findUserByNameSQL)) {
             preparedStatement.setObject(1, userName);
             ResultSet resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                user = new User();
-                user.setId(resultSet.getLong("id"));
-                user.setFirstName(resultSet.getString("firstname"));
-                user.setLastName((resultSet.getString("lastname")));
-                user.setAge(resultSet.getInt("age"));
+            if (resultSet.next()) {
+                user = map(resultSet);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -89,12 +94,7 @@ public class SimpleJDBCRepository {
              PreparedStatement preparedStatement = connection.prepareStatement(findAllUserSQL)) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                User user = new User();
-                user.setId(resultSet.getLong("id"));
-                user.setFirstName(resultSet.getString("firstname"));
-                user.setLastName((resultSet.getString("lastname")));
-                user.setAge(resultSet.getInt("age"));
-                userList.add(user);
+                userList.add(map(resultSet));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
